@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<base target="_top">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	
+	<title>GeoJSON tutorial - Leaflet</title>
+	
+	<link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css" integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js" integrity="sha256-o9N1jGDZrf5tS+Ft4gbIK7mYMipq9lqpVJ91xHSyKhg=" crossorigin=""></script>
+
+	<style>
+		html, body {
+			height: 100%;
+			margin: 0;
+		}
+		.leaflet-container {
+			height: 90vh;
+			width: 90%;
+			max-width: 90%;
+			max-height: 90%;
+		}
+	</style>
+
+	
+</head>
+<body>
+
+<div id='map'></div>
+
+<script src="https://media.githubusercontent.com/media/senenebio/albay-poc/main/PH05.js" type="text/javascript"></script>
+<script type="text/javascript" src="https://cdn.rawgit.com/ardhi/Leaflet.MousePosition/master/src/L.Control.MousePosition.js"></script>
+<script>
+	const map = L.map('map').setView([13.1357,123.7349], 15);
+
+	const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+		maxZoom: 19,
+		attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+	}).addTo(map);
+	
+	var myStyle = {
+		"color": "#9CAAD1", 
+		"weight": 1,
+		"opacity": 0.95,
+		"fillOpacity" : 0.00
+	};
+	 
+	 
+	//var albay = JSON.parse(JSON.stringify(ph05));
+	//albay.features = albay.features.filter ( f => f.properties.Pro_Name == 'ALBAY'); 
+	L.geoJson(ph05, {style: myStyle})
+		.on('click', function(e){
+			console.log(e.sourceTarget.feature.properties);
+			
+		})
+		.eachLayer(function (layer) {
+			layer.bindPopup("<pre>" + JSON.stringify(layer.feature.properties, null, 2) + "</pre>");
+		})
+		.addTo(map);
+	
+	L.control.scale().addTo(map);
+	L.control.mousePosition().addTo(map);
+
+
+
+</script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Vector Tiles in Leaflet JS</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.8.0/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.8.0/leaflet.css" />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-search@3.0.2/dist/leaflet-search.src.css" />
+    <script src="https://unpkg.com/leaflet-search@3.0.2/dist/leaflet-search.src.js"></script>
+
+    <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel='stylesheet' />
+    <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
+    <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.17/leaflet-maplibre-gl.js"></script>
+    <style>
+      #map {position: absolute; top: 0; right: 0; bottom: 0; left: 0;}
+    </style>
+  </head>
+  <body>
+    <div id="map">
+      <a href="https://www.maptiler.com" style="position:absolute;left:10px;bottom:10px;z-index:999;"><img src="https://api.maptiler.com/resources/logo.svg" alt="MapTiler logo"></a>
+    </div>
+    <p><a href="https://www.maptiler.com/copyright/" target="_blank">© MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap contributors</a></p>
+    
+    <script src="https://media.githubusercontent.com/media/senenebio/albay-poc/main/PH05.js" type="text/javascript"></script>
+    <script src="AlbayBrgyData.js" type="text/javascript"></script>
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const key = urlParams.get('key') || 'o88tPDuZvC6lkLsrRY7o';
+      const map = L.map('map').setView([13.1357,123.7349], 15);
+      const gl = L.maplibreGL({
+        attribution: "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e",
+        style: `https://api.maptiler.com/maps/streets/style.json?key=${key}`
+      }).addTo(map);
+
+      var myStyle = {
+		"color": "#9CAAD1", 
+		"weight": 1,
+		"opacity": 0.95,
+		"fillOpacity" : 0.00
+	};
+	//deep copy 
+	var albay = JSON.parse(JSON.stringify(ph05));
+	albay.features = albay.features.filter ( f => f.properties.Pro_Name == 'ALBAY'); 
+    albay.features.forEach(e=> {e.properties["Search"] = e.properties.Bgy_Name + ", " + e.properties.Mun_Name});
+    
+    //https://lgu201.dilg.gov.ph/view.php?r=05&p=005&m=01
+    albay.features.forEach(e=> {e.properties["Profile"] = "https://lgu201.dilg.gov.ph/view.php?r=05&p=005&m=" + e.properties.Mun_Code.substring(6,8)});
+    console.log(albay.features);
+	var albay_layer = L.geoJson(albay, {style: myStyle})
+		/*.on('click', function(e){
+			console.log(e.sourceTarget.feature.properties);
+			
+		})*/
+		.eachLayer(function (layer) {
+			layer.bindPopup(FormatedPopUp(layer));
+		})
+		.addTo(map);
+
+    L.control.search({
+        layer: albay_layer,
+        initial: false,
+        propertyName: 'Search' // Specify which property is searched into.
+    })
+    .addTo(map);
+
+    L.control.scale().addTo(map);
+
+     function FormatedPopUp(layer)
+     {
+        let place_name = layer.feature.properties.Mun_Name
+                            .replace("CITY OF","")
+                            .replace(/\([^()]*\)/g,"") +
+                            " Albay, Philippines";
+        return "<pre>" + 
+            JSON.stringify(layer.feature.properties, null, 2) + "\n" + 
+            JSON.stringify(LookupBrgyData(layer.feature.properties.Bgy_Code), null, 2) +             
+            "</pre>" +
+            `<a href="${layer.feature.properties.Profile}" target="_blank">LGU Profile</a> <br>` +
+            `<a href="https://www.google.com/search?q=jobs+near+${place_name}" target="_blank">Job Search</a> <br>` +
+            `<a href="https://www.google.com/search?q=site:facebook.com+${place_name}" target="_blank">Facebook Search</a> <br>` +
+            `<a href="https://www.google.com/search?q=site:youtube.com+${place_name}" target="_blank">Youtube Search</a> <br>` +
+            `<a href="https://twitter.com/search?q=${place_name}&f=live" target="_blank">Twitter</a> <br>`
+            ;
+     }
+
+     function LookupBrgyData(psgc_code)
+     {
+        if (albay_brgy_data[psgc_code])
+        {
+            return albay_brgy_data[psgc_code];
+        }
+        return "No Data"
+     }
+
+    </script>
+  </body>
+</html>
