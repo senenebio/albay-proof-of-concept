@@ -189,7 +189,7 @@
         function PopupDisplay(data) {
             const extra = JSON.parse(data["ExtraData"]);
             const popn2020 = extra ? extra.Popn2020 : 0;
-            const areaHa = data["Area_Ha"];
+            const areaHa = data["Area_Ha"] ? data["Area_Ha"] : 0;
             const popDensity = popn2020 && areaHa ? popn2020 / areaHa : 0;
             const workPopn2020 = extra ? extra.Est_Work_Popn : 0;
             const place_name = data.Mun_Name
