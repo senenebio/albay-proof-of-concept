@@ -87,8 +87,9 @@
         const key = urlParams.get('key') || 'o88tPDuZvC6lkLsrRY7o';
         const map = new maplibregl.Map({
             container: 'map', // container id
-            // style: `https://api.maptiler.com/maps/outdoor/style.json?key=${key}`, // style URL
-            style: `https://api.maptiler.com/maps/streets/style.json?key=${key}`, // style URL
+            style: `https://api.maptiler.com/maps/outdoor/style.json?key=${key}`, // style URL
+            // style: `https://api.maptiler.com/maps/streets/style.json?key=${key}`, // style URL
+            // style: `https://api.maptiler.com/maps/hybrid/style.json?key=${key}`,
             center: [123.7349, 13.1357], // starting position [lng, lat]
             zoom: 10, // starting zoom
             pitch: 61,
@@ -101,6 +102,14 @@
                 "type": "raster-dem",
                 "url": `https://api.maptiler.com/tiles/terrain-rgb/tiles.json?key=${key}`
             });
+            map.addSource("opentopomap", {
+                "type": "raster",
+                'tiles': [
+                    `https://tile.opentopomap.org/{z}/{x}/{y}.png`
+                ],
+                "attribution": `Kartendaten: © OpenStreetMap-Mitwirkende, SRTM | Kartendarstellung: © OpenTopoMap (CC-BY-SA)`
+            });
+
             map.addSource('albay_brgy', {
                 'type': 'geojson',
                 'data': albay
@@ -108,6 +117,15 @@
             map.setTerrain({
                 source: "terrain"
             });
+
+            /*map.addLayer({
+                'id': 'simple-tiles',
+                'type': 'raster',
+                'source': 'opentopomap',
+                'minzoom': 0,
+                'maxzoom': 22
+            });*/
+
             map.addLayer({
                 'id': 'brgy_lines',
                 'type': 'line',
@@ -203,8 +221,8 @@
                 <br>
                 Population (2020): ${popn2020}<br>
                 Area in Ha: ${areaHa.toFixed(4)}<br>
-                Pop'n Density : ${popDensity.toFixed(4)}<br>
-                Est. Work Pop'n:: ${workPopn2020}<br>
+                Pop'n Density: ${popDensity.toFixed(4)}<br>
+                Est. Work Pop'n: ${workPopn2020}<br>
                 <br>
             </div>` +
                 `<a href="${data.LGUProfile}" target="_blank">LGU Profile</a> <br>` +
