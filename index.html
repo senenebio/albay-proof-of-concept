@@ -1,173 +1,276 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>Vector Tiles in Leaflet JS</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.8.0/leaflet.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.8.0/leaflet.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-search@3.0.2/dist/leaflet-search.src.css" />
-  <script src="https://unpkg.com/leaflet-search@3.0.2/dist/leaflet-search.src.js"></script>
+    <title>Albay 3D Map</title>
 
-  <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel='stylesheet' />
-  <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
-  <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.17/leaflet-maplibre-gl.js"></script>
+    <script src="https://cdn.maptiler.com/maplibre-gl-js/v2.4.0/maplibre-gl.js"></script>
+    <link href="https://cdn.maptiler.com/maplibre-gl-js/v2.4.0/maplibre-gl.css" rel="stylesheet" />
 
-  <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
-  <script src='https://cdn.plot.ly/plotly-2.16.1.min.js'></script>
+    <!-- Load the `maplibre-gl-geocoder` plugin. -->
+    <script src="https://unpkg.com/@maplibre/maplibre-gl-geocoder@1.2.0/dist/maplibre-gl-geocoder.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/@maplibre/maplibre-gl-geocoder@1.2.0/dist/maplibre-gl-geocoder.css"
+        type="text/css" />
 
-  <style>
-    #map {
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-    }
-  </style>
+    <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.5/dist/sweetalert2.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        body {
+            margin: 5;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 99%;
+        }
+    </style>
 </head>
 
 <body>
-  <div id="map">
-    <a href="https://www.maptiler.com" style="position:absolute;left:10px;bottom:10px;z-index:999;"><img
-        src="https://api.maptiler.com/resources/logo.svg" alt="MapTiler logo"></a>
-  </div>
-  <p>
-    <a href="https://www.maptiler.com/copyright/" target="_blank">© MapTiler</a>
-    <a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap contributors</a>
-  </p>
+    <div id="map"></div>
 
-  <script src="PH05.js" type="text/javascript"></script>
-  <script src="AlbayBrgyData.js" type="text/javascript"></script>
-  <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const key = urlParams.get('key') || 'o88tPDuZvC6lkLsrRY7o';
-    const map = L.map('map').setView([13.1357, 123.7349], 15);
-    const gl = L.maplibreGL({
-      attribution: "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e",
-      style: `https://api.maptiler.com/maps/streets/style.json?key=${key}`
-    }).addTo(map);
-
-    // global
-    var plotly_data, plotly_layout, plotly_config = null;
-    
-    var myStyle = {
-      "color": "#9CAAD1",
-      "weight": 1,
-      "opacity": 0.50,
-      "fillOpacity": 0.00
-    };
-    //deep copy 
-    var albay = JSON.parse(JSON.stringify(ph05));
-    albay.features = albay.features.filter(f => f.properties.Pro_Name == 'ALBAY');
-    albay.features.forEach(e => { e.properties["Search"] = e.properties.Bgy_Name + ", " + e.properties.Mun_Name });
-
-    //https://lgu201.dilg.gov.ph/view.php?r=05&p=005&m=01
-    albay.features.forEach(e => { e.properties["Profile"] = "https://lgu201.dilg.gov.ph/view.php?r=05&p=005&m=" + e.properties.Mun_Code.substring(6, 8) });
-    console.log(albay.features);
-    var albay_layer = L.geoJson(albay, {
-      style: myStyle,
-      onEachFeature: onEachFeature
-    })
-      /*.on('click', function(e){
-        console.log(e.sourceTarget.feature.properties);
-      	
-      })*/
-      .eachLayer(function (layer) {
-        // popup
-        initPlotlyBarChart(layer);
-        layer.bindPopup(FormatedPopUp(layer))
-        .on('popupopen', function (e) {
-
-          if (plotly_data && plotly_layout && plotly_config) {
-            Plotly.newPlot('plotly', plotly_data, plotly_layout, plotly_config);
-          }
-          
-
-        })
-      })
-      .addTo(map);
-
-    L.control.search({
-      layer: albay_layer,
-      initial: false,
-      propertyName: 'Search' // Specify which property is searched into.
-    })
-      .addTo(map);
-
-    L.control.scale().addTo(map);
-
-    function FormatedPopUp(layer) {
-      let place_name = layer.feature.properties.Mun_Name
-        .replace("CITY OF", "")
-        .replace(/\([^()]*\)/g, "") +
-        " Albay, Philippines";
-
-
-      return "<pre>" +
-        JSON.stringify(layer.feature.properties, null, 2) + "\n" +
-        JSON.stringify(LookupBrgyData(layer.feature.properties.Bgy_Code), null, 2) +
-        "</pre>" +
-        "<div id='plotly'></div>" +
-        `<a href="${layer.feature.properties.Profile}" target="_blank">LGU Profile</a> <br>` +
-        `<a href="https://www.google.com/search?q=jobs+near+${place_name}" target="_blank">Job Search</a> <br>` +
-        `<a href="https://www.google.com/search?q=site:facebook.com+${place_name}" target="_blank">Facebook Search</a> <br>` +
-        `<a href="https://www.google.com/search?q=site:youtube.com+${place_name}" target="_blank">Youtube Search</a> <br>` +
-        `<a href="https://twitter.com/search?q=${place_name}&f=live" target="_blank">Twitter</a> <br>`
-        ;
-    }
-
-    function initPlotlyBarChart(layer) {
-      var data = LookupBrgyData(layer.feature.properties.Bgy_Code);
-      if (data) {
-        var trace1 = {
-          type: 'bar',
-          x: ["a", "b", "c", "d"],
-          y: [5, 10, 2, 8],
-          orientation: 'h',
-          marker: {
-            color: '#C8A2C8',
-            line: {
-              width: 2.5
+    <script src="PH05.js" type="text/javascript"></script>
+    <script src="AlbayBrgyData.js" type="text/javascript"></script>
+    <script>
+        // clean-up/adjust data
+        var albay = JSON.parse(JSON.stringify(ph05));
+        albay.features = albay.features.filter(f => f.properties.Pro_Name == 'ALBAY');
+        albay.features.forEach(e => {
+            e.properties["DisplayName"] = e.properties.Bgy_Name + ", " +
+                e.properties.Mun_Name
+                    .replace("CITY OF", "")
+                    .replace(/\([^()]*\)/g, "") +
+                " Albay, Philippines";
+        });
+        albay.features.forEach(e => {
+            e.properties["LGUProfile"] = "https://lgu201.dilg.gov.ph/view.php?r=05&p=005&m=" +
+                e.properties.Mun_Code.substring(6, 8)
+        });
+        albay.features.forEach(e => {
+            if (e.geometry.type == 'Polygon') {
+                //calculate area
+                var polygon = turf.polygon(e.geometry.coordinates);
+                var area = turf.area(polygon);
+                //console.log(area);
+                e.properties["Area_Ha"] = area / 10000;
             }
-          }
+        });
+        albay.features.forEach(e => {
+            // append extra if found
+            code = e.properties.Bgy_Code
+            var extra = albay_brgy_data[code]
+            if (extra) {
+                delete extra["Bgy_Name"];
+                // truncate to int
+                extra.Est_Work_Popn |= 0
+                extra.Est_Work_Popn |= 0
+                extra.Est_Work_Male |= 0
+                extra.Est_Work_Female |= 0
+                extra.Est_Young_Deps |= 0
+                extra.Est_Old_Deps |= 0
+                // append (this will be converted to a json string??)
+                e.properties["ExtraData"] = extra;
+            }
+        });
+
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const key = urlParams.get('key') || 'o88tPDuZvC6lkLsrRY7o';
+        const map = new maplibregl.Map({
+            container: 'map', // container id
+            // style: `https://api.maptiler.com/maps/outdoor/style.json?key=${key}`, // style URL
+            style: `https://api.maptiler.com/maps/streets/style.json?key=${key}`, // style URL
+            center: [123.7349, 13.1357], // starting position [lng, lat]
+            zoom: 10, // starting zoom
+            pitch: 61,
+            bearing: 0,
+            maxPitch: 85,
+            maxZoom: 20
+        });
+        map.on('load', () => {
+            map.addSource("terrain", {
+                "type": "raster-dem",
+                "url": `https://api.maptiler.com/tiles/terrain-rgb/tiles.json?key=${key}`
+            });
+            map.addSource('albay_brgy', {
+                'type': 'geojson',
+                'data': albay
+            });
+            map.setTerrain({
+                source: "terrain"
+            });
+            map.addLayer({
+                'id': 'brgy_lines',
+                'type': 'line',
+                'source': 'albay_brgy',
+                'paint': {
+                }
+            });
+            map.addLayer({
+                'id': 'brgy_poly',
+                'type': 'fill',
+                'source': 'albay_brgy',
+                'paint': {
+                    'fill-opacity': 0
+                }
+            });
+
+            map.on('click', 'brgy_poly', function (e) {
+                new maplibregl.Popup()
+                    .setLngLat(e.lngLat)
+                    .setHTML(PopupDisplay(e.features[0].properties))
+                    .addTo(map);
+            });
+
+            map.getCanvas().focus();
+            map.getCanvas().addEventListener(
+                'keydown',
+                function (e) {
+                    e.preventDefault();
+                    if (e.which === 38) {
+                        // up
+                        map.panBy([0, -deltaDistance], {
+                            easing: easing
+                        });
+                    } else if (e.which === 40) {
+                        // down
+                        map.panBy([0, deltaDistance], {
+                            easing: easing
+                        });
+                    } else if (e.which === 37) {
+                        // left
+                        map.easeTo({
+                            bearing: map.getBearing() - deltaDegrees,
+                            easing: easing
+                        });
+                    } else if (e.which === 39) {
+                        // right
+                        map.easeTo({
+                            bearing: map.getBearing() + deltaDegrees,
+                            easing: easing
+                        });
+                    }
+                },
+                true
+            );
+
+        });
+
+        // map.on('error', function (err) {
+        //     //throw new Error("To load the map, you must replace YOUR_MAPTILER_API_KEY_HERE first, see README");
+        // });
+        map.on('mousemove', function (e) {
+            //console.log(JSON.stringify(e.point))
+            //console.log(JSON.stringify(e.lngLat.wrap()))
+            // document.getElementById('info').innerHTML =
+            //     // e.point is the x, y coordinates of the mousemove event relative
+            //     // to the top-left corner of the map
+            //     JSON.stringify(e.point) +
+            //     '<br />' +
+            //     // e.lngLat is the longitude, latitude geographical position of the event
+            //     JSON.stringify(e.lngLat.wrap());
+        });
+
+        // Full screen
+        map.addControl(new maplibregl.FullscreenControl());
+
+        // Add zoom and rotation controls to the map.
+        map.addControl(new maplibregl.NavigationControl());
+
+        function PopupDisplay(data) {
+            const extra = JSON.parse(data["ExtraData"]);
+            const popn2020 = extra ? extra.Popn2020 : 0;
+            const areaHa = data["Area_Ha"];
+            const popDensity = popn2020 && areaHa ? popn2020 / areaHa : 0;
+            const workPopn2020 = extra ? extra.Est_Work_Popn : 0;
+            const place_name = data.Mun_Name
+                .replace("CITY OF", "")
+                .replace(/\([^()]*\)/g, "") +
+                " Albay, Philippines";;
+            return `<div>
+                Barangay: <strong>${data.Bgy_Name}</strong> <em>(${data.Bgy_Code})</em><br>
+                City/Mun: ${data.Mun_Name}<br>
+                Province: ${data.Pro_Name}<br>
+                <br>
+                Population (2020): ${popn2020}<br>
+                Area in Ha: ${areaHa.toFixed(4)}<br>
+                Pop'n Density : ${popDensity.toFixed(4)}<br>
+                Est. Work Pop'n:: ${workPopn2020}<br>
+                <br>
+            </div>` +
+                `<a href="${data.LGUProfile}" target="_blank">LGU Profile</a> <br>` +
+                `<a href="https://www.google.com/search?q=jobs+near+${place_name}" target="_blank">Job Search</a> <br>` +
+                `<a href="https://www.google.com/searc>h?q=site:facebook.com+${place_name}" target="_blank">Facebook Search</a> <br>` +
+                `<a href="https://www.google.com/search?q=site:youtube.com+${place_name}" target="_blank">Youtube Search</a> <br>` +
+                `<a href="https://twitter.com/search?q=${place_name}&f=live" target="_blank">Twitter</a> <br>`
+        }
+
+        // pixels the map pans when the up or down arrow is clicked
+        var deltaDistance = 100;
+        // degrees the map rotates when the left or right arrow is clicked
+        var deltaDegrees = 25;
+        // 
+        function easing(t) {
+            return t * (2 - t);
+        }
+
+        var geocoder_api = {
+            forwardGeocode: async (config) => {
+                const features = [];
+                try {
+                    let request =
+                        'https://nominatim.openstreetmap.org/search?q=' +
+                        config.query +
+                        '&format=geojson&polygon_geojson=1&addressdetails=1';
+                    const response = await fetch(request);
+                    const geojson = await response.json();
+                    for (let feature of geojson.features) {
+                        let center = [
+                            feature.bbox[0] +
+                            (feature.bbox[2] - feature.bbox[0]) / 2,
+                            feature.bbox[1] +
+                            (feature.bbox[3] - feature.bbox[1]) / 2
+                        ];
+                        let point = {
+                            type: 'Feature',
+                            geometry: {
+                                type: 'Point',
+                                coordinates: center
+                            },
+                            place_name: feature.properties.display_name,
+                            properties: feature.properties,
+                            text: feature.properties.display_name,
+                            place_type: ['place'],
+                            center: center
+                        };
+                        features.push(point);
+                    }
+                } catch (e) {
+                    console.error(`Failed to forwardGeocode with error: ${e}`);
+                }
+
+                return {
+                    features: features
+                };
+            }
         };
+        map.addControl(
+            new MaplibreGeocoder(geocoder_api, {
+                maplibregl: maplibregl
+            })
+        );
 
-        plotly_data = [trace1];
 
-        plotly_layout = {
-          title: 'Responsive to window\'s size!',
-          font: { size: 10 }
-        };
-
-        plotly_config = { responsive: true }
-        return; 
-      }
-
-      plotly_data = null;
-      plotly_layout = null;
-      plotly_config = null;
-    }
-
-    function LookupBrgyData(psgc_code) {
-      if (albay_brgy_data[psgc_code]) {
-        return albay_brgy_data[psgc_code];
-      }
-      return null
-    }
-
-    function onEachFeature(feature, layer) {
-      if (feature.geometry.type == 'Polygon') {
-        //calculate area
-        var polygon = turf.polygon(feature.geometry.coordinates);
-        var area = turf.area(polygon);
-        //console.log(area);
-        feature.properties["Area_Ha"] = area / 10000;
-      }
-    }
-
-  </script>
+    </script>
 </body>
 
 </html>
