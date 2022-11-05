@@ -63,8 +63,16 @@
                 //calculate area
                 var polygon = turf.polygon(e.geometry.coordinates);
                 var area = turf.area(polygon);
-                //console.log(area);
+                //console.log(e.properties.Bgy_Name, area);
                 e.properties["Area_Ha"] = area / 10000;
+            } if (e.geometry.type == 'MultiPolygon') {
+                var area = 0;
+                e.geometry.coordinates.forEach(e => {
+                    var poly = turf.polygon(e);
+                    area += turf.area(poly)
+                });
+                e.properties["Area_Ha"] = area / 10000;
+                //console.log(e.properties.Bgy_Name, area, "is multi");                
             }
         });
         albay.features.forEach(e => {
@@ -223,10 +231,35 @@
             const place_name = data.Mun_Name
                 .replace("CITY OF", "")
                 .replace(/\([^()]*\)/g, "") +
-                " Albay, Philippines";;
+                " Albay, Philippines";
+
+            // make philatlas clean links
+            const philatlas_mun = data.Mun_Name
+                .replace(/\([^()]*\)/g, "")
+                .replace("CITY OF", "")
+                .replace(" CITY", "")
+                .trim()
+                .replace(/ /g, "-")
+                .toLowerCase()
+                .trim();            
+            const philatlas_bgy = data.Bgy_Name                
+                .replace(/\([^()]*\)/g, "")
+                .trim()
+                .replace("Bgy.", "Barangay")
+                .replace("    ", " ") // 4,3,2,1
+                .replace("   ", " ")
+                .replace("  ", " ")
+                .replace(/ /g, "-")
+                .toLowerCase()
+                .trim();
+
+            const philatlas_mun_link = `https://www.philatlas.com/luzon/r05/albay/${philatlas_mun}.html`;
+            const philatlas_bgy_link = `https://www.philatlas.com/luzon/r05/albay/${philatlas_mun}/${philatlas_bgy}.html`;
+
             return `<div>
-                Barangay: <strong>${data.Bgy_Name}</strong> <em>(${data.Bgy_Code})</em><br>
-                City/Mun: ${data.Mun_Name} 
+                Barangay: <a href="${philatlas_bgy_link}" target="_blank"><strong>${data.Bgy_Name}</strong></a> 
+                    <em>(${data.Bgy_Code})</em><br>
+                City/Mun: <a href="${philatlas_mun_link}" target="_blank">${data.Mun_Name}</a> 
                     <a href="${data.LGUProfile}" target="_blank"><em>(${data.Mun_Code})</em></a> <br>
                 Province: <a href="https://albay.gov.ph" target="_blank">${data.Pro_Name}</a> 
                     <a href="https://lgu201.dilg.gov.ph/view.php?r=05&p=005&m=" target="_blank"><em>(${data.Pro_Code})</em></a> <br>
