@@ -18,7 +18,8 @@
     <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.5/dist/sweetalert2.css" />
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <style>
         body {
@@ -87,9 +88,10 @@
         const key = urlParams.get('key') || 'o88tPDuZvC6lkLsrRY7o';
         const map = new maplibregl.Map({
             container: 'map', // container id
-            style: `https://api.maptiler.com/maps/outdoor/style.json?key=${key}`, // style URL
+            // style: `https://api.maptiler.com/maps/outdoor/style.json?key=${key}`, // style URL
             // style: `https://api.maptiler.com/maps/streets/style.json?key=${key}`, // style URL
             // style: `https://api.maptiler.com/maps/hybrid/style.json?key=${key}`,
+            style: `https://api.maptiler.com/maps/topo-v2/style.json?key=${key}`,
             center: [123.7349, 13.1357], // starting position [lng, lat]
             zoom: 10, // starting zoom
             pitch: 61,
@@ -216,20 +218,22 @@
                 " Albay, Philippines";;
             return `<div>
                 Barangay: <strong>${data.Bgy_Name}</strong> <em>(${data.Bgy_Code})</em><br>
-                City/Mun: ${data.Mun_Name}<br>
-                Province: ${data.Pro_Name}<br>
+                City/Mun: ${data.Mun_Name} 
+                    <a href="${data.LGUProfile}" target="_blank"><em>(${data.Mun_Code})</em></a> <br>
+                Province: <a href="https://albay.gov.ph">${data.Pro_Name}</a> 
+                    <a href="https://lgu201.dilg.gov.ph/view.php?r=05&p=005&m="><em>(${data.Pro_Code})</em></a> <br>
+                <a href="https://www.google.com/maps/dir/Legazpi+City/${data.Bgy_Name}+${place_name}">How to get there?</a><br>
                 <br>
                 Population (2020): ${popn2020}<br>
                 Area in Ha: ${areaHa.toFixed(4)}<br>
                 Pop'n Density: ${popDensity.toFixed(4)}<br>
                 Est. Work Pop'n: ${workPopn2020}<br>
-                <br>
             </div>` +
-                `<a href="${data.LGUProfile}" target="_blank">LGU Profile</a> <br>` +
-                `<a href="https://www.google.com/search?q=jobs+near+${place_name}" target="_blank">Job Search</a> <br>` +
-                `<a href="https://www.google.com/search?q=site:facebook.com+${place_name}" target="_blank">Facebook Search</a> <br>` +
-                `<a href="https://www.google.com/search?q=site:youtube.com+${place_name}" target="_blank">Youtube Search</a> <br>` +
-                `<a href="https://twitter.com/search?q=${place_name}&f=live" target="_blank">Twitter</a> <br>`
+                ` <br>` +
+                `<a href="https://www.google.com/search?q=jobs+near+${place_name}" target="_blank"> <i class="fa-solid fa-people-carry-box"></i> Job Search </a> <br>` +
+                `<a href="https://www.google.com/search?q=site:facebook.com+${place_name}" target="_blank"><i class="fa-brands fa-facebook"></i> Facebook</a> <br>` +
+                `<a href="https://www.google.com/search?q=site:youtube.com+${place_name}" target="_blank"><i class="fa-brands fa-youtube"></i>Youtube</a> <br>` +
+                `<a href="https://twitter.com/search?q=${place_name}&f=live" target="_blank"><i class="fa-brands fa-twitter"></i>Twitter</a> <br>`
         }
 
         // pixels the map pans when the up or down arrow is clicked
