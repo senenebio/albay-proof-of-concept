@@ -273,6 +273,7 @@
                 ` <hr>` +
                 `<a href="https://www.google.com/search?q=jobs+near+${place_name}" target="_blank"> <i class="fa-solid fa-people-carry-box"></i> Job Search </a> <br>` +
                 `<a href="https://www.google.com/search?q=site:facebook.com+${place_name}" target="_blank"><i class="fa-brands fa-facebook"></i> Facebook</a> <br>` +
+                `<a href="https://www.google.com/search?q=site:linkedin.com profiles + ${place_name} Bicol" target="_blank"><i class="fa-brands fa-linkedin-in"></i> Linkedin</a> <br>` +
                 `<a href="https://www.google.com/search?q=site:youtube.com+${place_name}" target="_blank"><i class="fa-brands fa-youtube"></i>Youtube</a> <br>` +
                 `<a href="https://twitter.com/search?q=${place_name}&f=live" target="_blank"><i class="fa-brands fa-twitter"></i>Twitter</a> <br>`
         }
@@ -331,6 +332,7 @@
                 maplibregl: maplibregl
             })
         );
+        map.addControl(new LoadingControl(new MapLibreGlDirections(map)));
 
 
     </script>
