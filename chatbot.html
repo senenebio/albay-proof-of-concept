@@ -1,7 +1,11 @@
 <html>
 
 <head>
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css"
+        integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
+    
     <style type="text/css">
         * {
             box-sizing: border-box;
@@ -111,15 +115,15 @@
 </head>
 
 <body>
-    <div id="container" class="container">
-        <div style="margin: 10px;"">
-        <img src=" logo-albay.png" height="300vh" alt="logo-albay">
+    <main class="container">
+        <div>
+            <span><i class="fa-solid fa-robot"></i></span>
         </div>
         <div id="chat" class="chat">
             <div id="messages" class="messages"></div>
             <input id="input" type="text" placeholder="Write something..." autocomplete="off" autofocus="true" />
         </div>
-    </div>
+    </main>
 
     <script type="text/javascript">
         // input options
