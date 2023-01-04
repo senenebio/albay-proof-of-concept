@@ -117,13 +117,23 @@
                     "type": "raster-dem",
                     "url": `https://api.maptiler.com/tiles/terrain-rgb/tiles.json?key=${key}`
                 });
-                map.addSource("opentopomap", {
+                /*map.addSource("opentopomap", {
                     "type": "raster",
                     'tiles': [
                         `https://tile.opentopomap.org/{z}/{x}/{y}.png`
                     ],
                     "attribution": `Kartendaten: © OpenStreetMap-Mitwirkende, SRTM | Kartendarstellung: © OpenTopoMap (CC-BY-SA)`
+                });*/
+
+                
+                map.addSource("opencellid", {
+                    "type": "raster",
+                    'tiles': [
+                        `https://corsproxy.io/?https://opencellid.org/images/maps/opencellid/{z}/{x}/{y}.png`
+                    ],
+                    "attribution": `<a href="https://opencellid.org/" target="_blank">© OpenCelliD</a>`
                 });
+                
 
                 map.addSource('albay_brgy', {
                     'type': 'geojson',
@@ -133,13 +143,14 @@
                     source: "terrain"
                 });
 
-                /*map.addLayer({
-                    'id': 'simple-tiles',
+                
+                map.addLayer({
+                    'id': 'cell-sites',
                     'type': 'raster',
-                    'source': 'opentopomap',
+                    'source': 'opencellid',
                     'minzoom': 0,
                     'maxzoom': 22
-                });*/
+                });
 
                 map.addLayer({
                     'id': 'brgy_lines',
